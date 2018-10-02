@@ -10,11 +10,12 @@ services:
       - ./logs/apache2:/var/log/apache2
     links:
       - mariadb
+      - oracledb
 
   mariadb:
     image: mariadb
     volumes:
-      - ./database:/var/lib/mysql
+      - ./database/mariadb:/var/lib/mysql
     ports:
       - 3306:3306
     environment:
@@ -25,6 +26,69 @@ services:
       MYSQL_PASSWORD: 'passworddb'
       MYSQL_DATABASE: 'testdb'
 
-#  volumes:
-#    mariadb:
-
+  # ORACLE XE
+  # https://hub.docker.com/r/sath89/oracle-xe-11g/
+  # http://localhost:8081/apex
+  # workspace: INTERNAL
+  # user: ADMIN
+  # password: oracle
+  # Apex upgrade up to v 5.*# port: 1521
+  # sid: xe
+  # username: system
+  # password: oracle
+  # Password for SYS & SYSTEM: oracle
+  #~oracledb:
+    #~image: sath89/oracle-xe-11g
+    #~ports:
+      #~- 8081:8080
+      #~- 1521:1521
+    #~volumes:
+      #~- ./database/oracle:/u01/app/oracle
+      #~- ./database/initdb/oracle:/docker-entrypoint-initdb.d
+    #~shm_size: 2g
+    #~environment:
+      #~- processes=1000
+      #~- sessions=1105
+      #~- transactions=12150
+      #~- ORACLE_ALLOW_REMOTE=true
+      #~- ORACLE_DISABLE_ASYNCH_IO=true
+  
+  # ORACLE EE
+  # https://hub.docker.com/r/sath89/oracle-ee-11g/
+  # hostname: localhost
+  # port: 1521
+  # sid: EE
+  # service name: EE.oracle.docker
+  # username: system
+  # password: oracle
+  # sqlplus system/oracle@//localhost:1521/EE.oracle.docker
+  # Password for SYS & SYSTEM: oracle
+  oracledb:
+    image: sath89/oracle-ee-11g
+    ports:
+      - 8081:8080
+      - 1521:1521
+    volumes:
+      - ./database/oracle:/u01/app/oracle
+      #~- ./database/initdb/oracle:/docker-entrypoint-initdb.d
+    shm_size: 2g
+    environment:
+      - processes=1000
+      - sessions=1105
+      - transactions=12150
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_DISABLE_ASYNCH_IO=true
+      #- IMPORT_FROM_VOLUME=true
+      
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=mariadb
+    ports:
+      - "2002:80"
+    volumes:
+      - /sessions
+    links:
+      - mariadb
+      
